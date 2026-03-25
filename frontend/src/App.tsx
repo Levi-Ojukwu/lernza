@@ -15,7 +15,7 @@ interface AppState {
 }
 
 function pathToPage(pathname: string): { page: Page; questId: number | null } {
-  const clean = pathname === "" ? "/" : pathname
+  const clean = pathname === "" || pathname === "/" ? "/" : pathname
 
   if (clean === "/") return { page: "landing", questId: null }
   if (clean === "/dashboard") return { page: "dashboard", questId: null }
@@ -51,42 +51,25 @@ export default function App() {
     setState({ page, questId: null })
   }, [])
 
-  const handleSelectQuest = useCallback((id: number) => {
+  const onSelectQuest = useCallback((id: number) => {
     const path = pageToPath("quest", id)
     window.history.pushState({}, "", path)
     setState({ page: "quest", questId: id })
   }, [])
 
-  const renderPage = () => {
-    if (state.page === "quest" && state.questId !== null) {
-      return (
-        <QuestView
-          questId={state.questId}
-          onBack={() => navigate("dashboard")}
-        />
-      )
-    }
-
-    switch (state.page) {
-      case "landing":
-        return <Landing onNavigate={navigate} />
-      case "dashboard":
-        return (
-          <Dashboard
-            onSelectQuest={handleSelectQuest}
-          />
-        )
-      case "profile":
-        return <Profile />
-      case "404":
-      default:
-        return <NotFound onNavigate={navigate} />
-    }
-  }
-
   return (
     <Layout onNavigate={navigate} activePage={state.page === "quest" ? "dashboard" : state.page}>
-      {renderPage()}
+      {state.page === "quest" && state.questId !== null ? (
+        <QuestView questId={state.questId} onBack={() => navigate("dashboard")} />
+      ) : state.page === "landing" ? (
+        <Landing onNavigate={navigate} />
+      ) : state.page === "dashboard" ? (
+        <Dashboard onSelectQuest={onSelectQuest} />
+      ) : state.page === "profile" ? (
+        <Profile />
+      ) : (
+        <NotFound onNavigate={navigate} />
+      )}
     </Layout>
   )
 }
