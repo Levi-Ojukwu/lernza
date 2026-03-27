@@ -241,3 +241,15 @@ jobs:
           gh pr review "$PR_NUM" \
             --"$(echo "$ACTION" | tr '[:upper:]' '[:lower:]' | tr '_' '-')" \
             --body "$BODY"
+
+      - name: Auto-merge approved PRs
+        if: steps.pr.outputs.skip != 'true' && steps.review.outputs.action == 'APPROVE'
+        env:
+          GH_TOKEN: ${{ secrets.OWNER_PAT }}
+          PR_NUM: ${{ steps.pr.outputs.number }}
+          PR_TITLE: ${{ steps.diff.outputs.title }}
+        run: |
+          gh pr merge "$PR_NUM" \
+            --squash \
+            --subject "$PR_TITLE" \
+            --body "Co-authored-by: Dopey <hello@sshdopey.com>"
